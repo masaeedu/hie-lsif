@@ -85,12 +85,12 @@ data HieDbConf =
 
 -- * HIE file procesddsing
 
- -- This belongs in GHC's HieUtils...
+-- This belongs in GHC's HieUtils...
 
- -- | Pretty-printed type, ready to be turned into HTML by @xhtml@
+-- | Pretty-printed type, ready to be turned into HTML by @xhtml@
 type PrintedType = String
 
- -- | Expand the flattened HIE AST into one where the types printed out and
+-- | Expand the flattened HIE AST into one where the types printed out and
 -- ready for end-users to look at.
 --
 -- Using just primitives found in GHC's HIE utilities, we could write this as
