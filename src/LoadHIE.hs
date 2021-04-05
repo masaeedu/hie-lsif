@@ -82,7 +82,7 @@ data HieDbConf =
 
 
 
--- * HIE file procesddsing
+-- * HIE file processing
 
 -- This belongs in GHC's HieUtils...
 
