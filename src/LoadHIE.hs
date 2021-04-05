@@ -7,7 +7,6 @@ import HieTypes
 import Name
 import IfaceType
 import FastString
-import Data.List
 
 import qualified Data.Array as A
 import qualified Data.Map as M
@@ -33,7 +32,7 @@ generateReferencesList
    => A.Array TypeIndex HieTypeFlat
    -> f (HieAST TypeIndex)
    -> References PrintedType
-generateReferencesList ty_array hie = foldr (\ast m -> print_and_go ast ++ m) [] hie
+generateReferencesList ty_array = foldr (\ast m -> print_and_go ast ++ m) []
    where
      print_and_go = go . recoverFullIfaceTypes ty_array
      go :: HieAST a -> References a
@@ -42,7 +41,7 @@ generateReferencesList ty_array hie = foldr (\ast m -> print_and_go ast ++ m) []
          this = map (\(a, b) -> (ast,a, b)) (M.toList (nodeIdentifiers $ nodeInfo ast))
 
 genRefMap :: HieFile -> (FilePath, Module, References PrintedType, ByteString)
-genRefMap hf = (fp, ref_mod, generateReferencesList (hie_types hf) $ getAsts $ (hie_asts hf),contents)
+genRefMap hf = (fp, ref_mod, generateReferencesList (hie_types hf) $ getAsts $ hie_asts hf, contents)
   where
     ref_mod = hie_module hf
     fp  = hie_hs_file hf
@@ -109,13 +108,13 @@ recoverFullIfaceTypes
   :: A.Array TypeIndex HieTypeFlat -- ^ flat types
   -> HieAST TypeIndex              -- ^ flattened AST
   -> HieAST PrintedType       -- ^ full AST
-recoverFullIfaceTypes flattened ast = fmap (unflattened A.!) ast
+recoverFullIfaceTypes flattened = fmap (unflattened A.!)
     where
 
      -- The recursion in 'unflattened' is crucial - it's what gives us sharing
     -- between the IfaceType's produced
     unflattened :: A.Array TypeIndex PrintedType
-    unflattened = fmap (\flatTy -> go (fmap (unflattened A.!) flatTy)) flattened
+    unflattened = fmap (go . fmap (unflattened A.!)) flattened
 
      -- Unfold an 'HieType' whose subterms have already been unfolded
     go :: HieType PrintedType -> PrintedType
@@ -128,8 +127,8 @@ recoverFullIfaceTypes flattened ast = fmap (unflattened A.!) ast
     go (HQualTy con b) = con ++ " => " ++ b
     go (HCastTy a) = a
     go HCoercionTy = "<co>"
-    go (HTyConApp (IfaceTyCon{ifaceTyConName}) xs) =
-      wrap xs $ (getOccString ifaceTyConName ++ " " ++ hieToIfaceArgs xs)
+    go (HTyConApp IfaceTyCon{ifaceTyConName} xs) =
+      wrap xs (getOccString ifaceTyConName ++ " " ++ hieToIfaceArgs xs)
 
     wrap (HieArgs args) =
         case args of

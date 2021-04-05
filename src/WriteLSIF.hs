@@ -46,9 +46,17 @@ import UniqSupply
 
 import qualified Language.Haskell.LSP.Types                 as LSP
 import qualified LSIF
-import LSIF (LsifId, ElementId, Element)
-import LSIF (RangeId, DefinitionResultId, ReferenceResultId, HoverResultId, ProjectId
-            , ResultSetId, DocumentId)
+import LSIF
+    ( LsifId,
+      ElementId,
+      Element,
+      RangeId,
+      DefinitionResultId,
+      ReferenceResultId,
+      HoverResultId,
+      ProjectId,
+      ResultSetId,
+      DocumentId )
 
 type ModRef = (FilePath, Module, References PrintedType, ByteString)
 
@@ -138,7 +146,7 @@ generateJSON :: FilePath -> Bool -> IndexStreamG ModRef () -> IndexStream ()
 generateJSON root inc m = do
   cabal_file <- liftIO $ findCabalFile root
   proj_node <- mkProjectVertex cabal_file
-  (St.for m (do_one_file proj_node))
+  St.for m (do_one_file proj_node)
   where
     do_one_file :: ProjectId -> ModRef -> IndexStream ()
     do_one_file proj_node (fp, ref_mod, r, contents) = do
@@ -206,7 +214,7 @@ mkReferences dn _ (ast, Right ref_id, id_details)
       -}
     --liftIO $ print (s, nameStableString ref_id, nameSrcSpan ref_id, occNameString (getOccName ref_id), (identInfo id_details))
   | otherwise =
-    liftIO $ print (nodeSpan ast, occNameString (getOccName ref_id), (identInfo id_details))
+    liftIO $ print (nodeSpan ast, occNameString (getOccName ref_id), identInfo id_details)
 mkReferences _ _ (s, Left mn, _)  =
   liftIO $ print (nodeSpan s , moduleNameString mn)
 
@@ -357,7 +365,7 @@ uniqueNode k = do
   return i
 
 tellOne :: a -> Stream (Of a) (StateT IndexS IO) ()
-tellOne x = St.yield x
+tellOne = St.yield
 
 {-
 addImportedReference :: Int -> Module -> Name -> IndexStream ()

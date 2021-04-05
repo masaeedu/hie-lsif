@@ -19,18 +19,17 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE GADTs                      #-}
 
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+
 module LSIF where
 
-import           Control.Applicative
 import qualified Data.Aeson                                 as A
 import           Data.Text                                  (Text)
-import qualified Data.Text                                  as T
 import qualified Language.Haskell.LSP.Types                 as LSP
 import Data.Kind
 import qualified Data.Void as Void
 import Data.Char
 import GHC.Generics hiding (MetaData)
-import Data.List
 import Unsafe.Coerce
 import Data.Proxy
 
@@ -67,7 +66,7 @@ instance MkConstr c1 => MkConstr (M1 k m c1) where
   mkConstr' k = mkConstr' (k . M1)
 
 instance (MkConstr a, MkConstr b) => MkConstr (a :*: b) where
-  mkConstr' k = mkConstr' (\x -> mkConstr' (k . (\y -> x :*: y)))
+  mkConstr' k = mkConstr' (\x -> mkConstr' (k . (x :*:)))
 
 -- If a given field is `Empty`, fill it in with its sole constructor:
 -- `Nothing`
@@ -158,7 +157,7 @@ type WhenVs t xs a = MatchV t (Assoc xs a)
 -- types with the same associated type
 type family Assoc (xs :: [a]) (y :: b) :: [(a,b)] where
   Assoc '[] y = '[]
-  Assoc (x ': xs) y = '(x,y) ': (Assoc xs y)
+  Assoc (x ': xs) y = '(x,y) ': Assoc xs y
 
 type family RangeOrResultT (a :: RangeOrResult) where
   RangeOrResultT RangeEdge = RangeId
@@ -179,7 +178,6 @@ type family OutE (t :: ElementType) where
   OutE (Edge 'TextDocument_FoldingRange) = DocumentId
   OutE (Edge 'TextDocument_DocumentLink) = DocumentId
   OutE (Edge ('TextDocument_Diagnostic ProjDiag)) = ProjectId
-  OutE (Edge ('TextDocument_Diagnostic ProjDiag)) = DocumentId
   OutE (Edge ('TextDocument_Definition a)) = RangeOrResultT a
   OutE (Edge ('TextDocument_Declaration a)) = RangeOrResultT a
   OutE (Edge ('TextDocument_TypeDefinition a)) = RangeOrResultT a
@@ -241,11 +239,11 @@ Suppose a new kind of vertex is added to the spec
 
 export interface LampShade extends V {
 
-	label: VertexLabels.lampshade;
+  label: VertexLabels.lampshade;
 
-	kind: LampShadeKind;
+  kind: LampShadeKind;
 
-	shade: Int;
+  shade: Int;
 
 }
 
