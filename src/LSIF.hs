@@ -25,7 +25,7 @@ module LSIF where
 
 import qualified Data.Aeson                                 as A
 import           Data.Text                                  (Text)
-import qualified Language.Haskell.LSP.Types                 as LSP
+import qualified Language.LSP.Types                         as LSP
 import Data.Kind
 import qualified Data.Void as Void
 import Data.Char
