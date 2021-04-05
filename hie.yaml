@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+  - path: "./src"
+    component: "lib:hie-lsif"
+
+  - path: "./exe"
+    component: "hie-lsif:exe:hie-lsif"

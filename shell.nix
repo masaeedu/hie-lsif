@@ -1,12 +1,18 @@
 let
-  np = import <nixpkgs> { overlays = [(import /home/matt/config/overlay.nix)];};
-  ghc = np.nur.repos.mpickering.ghc.mkGhc
-        { version = "8.8.0.20190424";
-          url = "https://downloads.haskell.org/~ghc/8.8.1-alpha1/ghc-8.8.0.20190424-x86_64-deb8-linux.tar.xz";
-          hash = "0lizyz7prlq99f0l3mcl01ks6241v87l5mpr0dqzg7rxxl23i1mh"; };
+  sources = import ./nix/sources.nix;
+  compilerVersion = import ./compiler.nix;
+  hnix = import sources.iohk-hnix {};
+  pkgs = (import hnix.sources.nixpkgs) hnix.nixpkgsArgs;
+  hls = import sources.nix-haskell-hls { ghcVersion = compilerVersion; hlsUnstable = true; };
+  snapshot = import ./snapshot.nix;
 in
-  np.mkShell { buildInputs = [ np.haskell.compiler.ghc881
-                               np.haskellPackages.cabal-install
-                               np.ncurses
-                               np.icdiff
-                               np.gist ]; }
+(import ./.).shellFor {
+  withHoogle = true;
+  buildInputs = [
+    hls.hls-renamed
+    hls.hls-wrapper
+    (pkgs.haskell-nix.tool compilerVersion "hpack"         { index-state = snapshot; version = "0.34.4"; })
+    (pkgs.haskell-nix.tool compilerVersion "cabal-install" { index-state = snapshot; version = "3.4.0.0"; })
+    (pkgs.haskell-nix.tool compilerVersion "ghcid"         { index-state = snapshot; version = "0.8.7";  })
+  ];
+}
